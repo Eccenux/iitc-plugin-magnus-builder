@@ -465,7 +465,9 @@ window.plugin.magnusBuilder.getSelectedPortals = function() {
 			polygons[i].getLatLngs()
 		);
 		for (var j = 0; j < selectedPortals.length; j++) {
-			selection.portals.push(selectedPortals[j]);
+			if (selection.portals.indexOf(selectedPortals[j]) < 0) {	// avoid duplicates
+				selection.portals.push(selectedPortals[j]);
+			}
 		}
 	}
 
