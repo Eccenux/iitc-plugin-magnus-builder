@@ -301,6 +301,11 @@ window.plugin.magnusBuilder.updateCaptured = function(fullyCaptured, guid) {
 	if (fullyCaptured !== portalState.all) {
 		stateChanged = true;
 		portalState.all = fullyCaptured;
+
+		// clear specific indexes array if individual resonators were selected manually
+		if (portalState.all && portalState.indexes.length >= 8) {
+			portalState.indexes.length = 0;
+		}
 	}
 
 	if(!stateChanged) {
