@@ -9,10 +9,18 @@ This plugin allows manual entry of deployed, unique resonators.
 Use the `magnusBuilder` highlighter to show your progress on the map.
 Use the `sync` plugin to share between multiple browsers or desktop/mobile.
 
-
 <img src="https://raw.githubusercontent.com/Eccenux/iitc-plugin-magnus-builder/master/screen.png" alt="Screen">
 
 Installation
 ------------
 
 Assuming you already have IITC just [install the script](https://github.com/Eccenux/iitc-plugin-magnus-builder/raw/master/magnus-builder.user.js).
+
+Selecting many portals
+------------------------
+
+You can use draw tools to select many portals and mark them as done quickly. This also works great if you have problems clicking on two portals that are close together.
+
+Note! You need `DrawTools` plugin to use this feature.
+
+<img src="https://raw.githubusercontent.com/Eccenux/iitc-plugin-magnus-builder/master/screen-massOps.png" alt="Mass operations dialog">
