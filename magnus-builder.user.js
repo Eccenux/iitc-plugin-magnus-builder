@@ -49,6 +49,9 @@ window.plugin.magnusBuilder.contentHTML = null;
 
 window.plugin.magnusBuilder.isHighlightActive = false;
 
+/**
+	Portal details loaded.
+*/
 window.plugin.magnusBuilder.onPortalDetailsUpdated = function() {
 	if(typeof(Storage) === "undefined") {
 		$('#portaldetails > .imgpreview').after(plugin.magnusBuilder.disabledMessage);
@@ -59,125 +62,20 @@ window.plugin.magnusBuilder.onPortalDetailsUpdated = function() {
 		details = portalDetail.get(guid),
 		nickname = window.PLAYER.nickname;
 	if(details) {
-		if(details.owner == nickname) {
-			//FIXME: a virus flip will set the owner of the portal, but doesn't count as a unique capture
-			plugin.magnusBuilder.updateCaptured(true);
-			// no further logic required
-		} else {
-			function installedByPlayer(entity) {
-				return entity && entity.owner == nickname;
-			}
-			
-			if(details.resonators.some(installedByPlayer) || details.mods.some(installedByPlayer)) {
-				plugin.magnusBuilder.updateVisited(true);
-			}
+		function installedByPlayer(entity) {
+			return entity && entity.owner == nickname;
 		}
+		
+		// TODO
+		/*
+		if(details.resonators.some(installedByPlayer)) {
+			plugin.magnusBuilder.updateVisited(true);
+		}
+		*/
 	}
 
 	$('#portaldetails > .imgpreview').after(plugin.magnusBuilder.contentHTML);
 	plugin.magnusBuilder.updateCheckedAndHighlight(guid);
-}
-
-window.plugin.magnusBuilder.onPublicChatDataAvailable = function(data) {
-	var nick = window.PLAYER.nickname;
-	data.result.forEach(function(msg) {
-		var plext = msg[2].plext,
-			markup = plext.markup;
-
-		if(plext.plextType == 'SYSTEM_BROADCAST'
-		&& markup.length==5
-		&& markup[0][0] == 'PLAYER'
-		&& markup[0][1].plain == nick
-		&& markup[1][0] == 'TEXT'
-		&& markup[1][1].plain == ' deployed an '
-		&& markup[2][0] == 'TEXT'
-		&& markup[3][0] == 'TEXT'
-		&& markup[3][1].plain == ' Resonator on '
-		&& markup[4][0] == 'PORTAL') {
-			// search for "x deployed an Ly Resonator on z"
-			var portal = markup[4][1];
-			var guid = window.findPortalGuidByPositionE6(portal.latE6, portal.lngE6);
-			if(guid) plugin.magnusBuilder.setPortalVisited(guid);
-		} else if(plext.plextType == 'SYSTEM_BROADCAST'
-		&& markup.length==3
-		&& markup[0][0] == 'PLAYER'
-		&& markup[0][1].plain == nick
-		&& markup[1][0] == 'TEXT'
-		&& markup[1][1].plain == ' deployed a Resonator on '
-		&& markup[2][0] == 'PORTAL') {
-			// search for "x deployed a Resonator on z"
-			var portal = markup[2][1];
-			var guid = window.findPortalGuidByPositionE6(portal.latE6, portal.lngE6);
-			if(guid) plugin.magnusBuilder.setPortalVisited(guid);
-		} else if(plext.plextType == 'SYSTEM_BROADCAST'
-		&& markup.length==3
-		&& markup[0][0] == 'PLAYER'
-		&& markup[0][1].plain == nick
-		&& markup[1][0] == 'TEXT'
-		&& markup[1][1].plain == ' captured '
-		&& markup[2][0] == 'PORTAL') {
-			// search for "x captured y"
-			var portal = markup[2][1];
-			var guid = window.findPortalGuidByPositionE6(portal.latE6, portal.lngE6);
-			if(guid) plugin.magnusBuilder.setPortalCaptured(guid);
-		} else if(plext.plextType == 'SYSTEM_BROADCAST'
-		&& markup.length==5
-		&& markup[0][0] == 'PLAYER'
-		&& markup[0][1].plain == nick
-		&& markup[1][0] == 'TEXT'
-		&& markup[1][1].plain == ' linked '
-		&& markup[2][0] == 'PORTAL'
-		&& markup[3][0] == 'TEXT'
-		&& markup[3][1].plain == ' to '
-		&& markup[4][0] == 'PORTAL') {
-			// search for "x linked y to z"
-			var portal = markup[2][1];
-			var guid = window.findPortalGuidByPositionE6(portal.latE6, portal.lngE6);
-			if(guid) plugin.magnusBuilder.setPortalVisited(guid);
-		} else if(plext.plextType == 'SYSTEM_NARROWCAST'
-		&& markup.length==6
-		&& markup[0][0] == 'TEXT'
-		&& markup[0][1].plain == 'Your '
-		&& markup[1][0] == 'TEXT'
-		&& markup[2][0] == 'TEXT'
-		&& markup[2][1].plain == ' Resonator on '
-		&& markup[3][0] == 'PORTAL'
-		&& markup[4][0] == 'TEXT'
-		&& markup[4][1].plain == ' was destroyed by '
-		&& markup[5][0] == 'PLAYER') {
-			// search for "Your Lx Resonator on y was destroyed by z"
-			var portal = markup[3][1];
-			var guid = window.findPortalGuidByPositionE6(portal.latE6, portal.lngE6);
-			if(guid) plugin.magnusBuilder.setPortalVisited(guid);
-		} else if(plext.plextType == 'SYSTEM_NARROWCAST'
-		&& markup.length==5
-		&& markup[0][0] == 'TEXT'
-		&& markup[0][1].plain == 'Your '
-		&& markup[1][0] == 'TEXT'
-		&& markup[2][0] == 'TEXT'
-		&& markup[2][1].plain == ' Resonator on '
-		&& markup[3][0] == 'PORTAL'
-		&& markup[4][0] == 'TEXT'
-		&& markup[4][1].plain == ' has decayed') {
-		    // search for "Your Lx Resonator on y has decayed"
-			var portal = markup[3][1];
-			var guid = window.findPortalGuidByPositionE6(portal.latE6, portal.lngE6);
-			if(guid) plugin.magnusBuilder.setPortalVisited(guid);
-		} else if(plext.plextType == 'SYSTEM_NARROWCAST'
-		&& markup.length==4
-		&& markup[0][0] == 'TEXT'
-		&& markup[0][1].plain == 'Your Portal '
-		&& markup[1][0] == 'PORTAL'
-		&& markup[2][0] == 'TEXT'
-		&& (markup[2][1].plain == ' neutralized by ' || markup[2][1].plain == ' is under attack by ')
-		&& markup[3][0] == 'PLAYER') {
-		    // search for "Your Portal x neutralized by y"
-		    // search for "Your Portal x is under attack by y"
-			var portal = markup[1][1];
-			var guid = window.findPortalGuidByPositionE6(portal.latE6, portal.lngE6);
-			if(guid) plugin.magnusBuilder.setPortalVisited(guid);
-		}
-	});
 }
 
 window.plugin.magnusBuilder.updateCheckedAndHighlight = function(guid) {
@@ -185,11 +83,13 @@ window.plugin.magnusBuilder.updateCheckedAndHighlight = function(guid) {
 
 	if (guid == window.selectedPortal) {
 
+		/*
 		var uniqueInfo = plugin.magnusBuilder.magnusBuilder[guid],
 			visited = (uniqueInfo && uniqueInfo.visited) || false,
 			captured = (uniqueInfo && uniqueInfo.captured) || false;
 		$('#visited').prop('checked', visited);
-		$('#captured').prop('checked', captured);
+		$('#magnusBuilder-captured').prop('checked', captured);
+		*/
 	}
 
 	if (window.plugin.magnusBuilder.isHighlightActive) {
@@ -199,8 +99,8 @@ window.plugin.magnusBuilder.updateCheckedAndHighlight = function(guid) {
 	}
 }
 
-
 window.plugin.magnusBuilder.setPortalVisited = function(guid) {
+/*
 	var uniqueInfo = plugin.magnusBuilder.magnusBuilder[guid];
 	if (uniqueInfo) {
 		if(uniqueInfo.visited) return;
@@ -215,9 +115,11 @@ window.plugin.magnusBuilder.setPortalVisited = function(guid) {
 
 	plugin.magnusBuilder.updateCheckedAndHighlight(guid);
 	plugin.magnusBuilder.sync(guid);
+*/
 }
 
 window.plugin.magnusBuilder.setPortalCaptured = function(guid) {
+/*
 	var uniqueInfo = plugin.magnusBuilder.magnusBuilder[guid];
 	if (uniqueInfo) {
 		if(uniqueInfo.visited && uniqueInfo.captured) return;
@@ -233,9 +135,11 @@ window.plugin.magnusBuilder.setPortalCaptured = function(guid) {
 
 	plugin.magnusBuilder.updateCheckedAndHighlight(guid);
 	plugin.magnusBuilder.sync(guid);
+*/
 }
 
 window.plugin.magnusBuilder.updateVisited = function(visited, guid) {
+/*
 	if(guid == undefined) guid = window.selectedPortal;
 
 	var uniqueInfo = plugin.magnusBuilder.magnusBuilder[guid];
@@ -257,9 +161,11 @@ window.plugin.magnusBuilder.updateVisited = function(visited, guid) {
 
 	plugin.magnusBuilder.updateCheckedAndHighlight(guid);
 	plugin.magnusBuilder.sync(guid);
+*/
 }
 
 window.plugin.magnusBuilder.updateCaptured = function(captured, guid) {
+/*
 	if(guid == undefined) guid = window.selectedPortal;
 
 	var uniqueInfo = plugin.magnusBuilder.magnusBuilder[guid];
@@ -281,6 +187,7 @@ window.plugin.magnusBuilder.updateCaptured = function(captured, guid) {
 
 	plugin.magnusBuilder.updateCheckedAndHighlight(guid);
 	plugin.magnusBuilder.sync(guid);
+*/
 }
 
 // stores the gived GUID for sync
@@ -423,180 +330,27 @@ window.plugin.magnusBuilder.highlighter = {
 window.plugin.magnusBuilder.setupCSS = function() {
 	$("<style>")
 	.prop("type", "text/css")
-	.html("#magnusBuilder-container {\n  display: block;\n  text-align: center;\n  margin: 6px 3px 1px 3px;\n  padding: 0 4px;\n}\n#magnusBuilder-container label {\n  margin: 0 0.5em;\n}\n#magnusBuilder-container input {\n  vertical-align: middle;\n}\n\n.portal-list-magnusBuilder input[type=\'checkbox\'] {\n  padding: 0;\n  height: auto;\n  margin-top: -5px;\n  margin-bottom: -5px;\n}\n")
+	//.html("#magnusBuilder-container {\n  display: block;\n  text-align: center;\n  margin: 6px 3px 1px 3px;\n  padding: 0 4px;\n}\n#magnusBuilder-container label {\n  margin: 0 0.5em;\n}\n#magnusBuilder-container input {\n  vertical-align: middle;\n}\n\n.portal-list-magnusBuilder input[type=\'checkbox\'] {\n  padding: 0;\n  height: auto;\n  margin-top: -5px;\n  margin-bottom: -5px;\n}\n")
 	.appendTo("head");
 }
 
 window.plugin.magnusBuilder.setupContent = function() {
 	plugin.magnusBuilder.contentHTML = '<div id="magnusBuilder-container">'
-		+ '<label><input type="checkbox" id="visited" onclick="window.plugin.magnusBuilder.updateVisited($(this).prop(\'checked\'))"> Visited</label>'
-		+ '<label><input type="checkbox" id="captured" onclick="window.plugin.magnusBuilder.updateCaptured($(this).prop(\'checked\'))"> Captured</label>'
+		+ '<label><input type="checkbox" id="magnusBuilder-captured" onclick="window.plugin.magnusBuilder.updateCaptured($(this).prop(\'checked\'))"> Resonators Captured</label>'
 		+ '</div>';
 	plugin.magnusBuilder.disabledMessage = '<div id="magnusBuilder-container" class="help" title="Your browser does not support localStorage">Plugin magnusBuilder disabled</div>';
 }
 
-window.plugin.magnusBuilder.setupPortalsList = function() {
-	if(!window.plugin.portalslist) return;
-
-	window.addHook('pluginmagnusBuilderUpdatemagnusBuilder', function(data) {
-		var info = plugin.magnusBuilder.magnusBuilder[data.guid];
-		if(!info) info = { visited: false, captured: false };
-
-		$('[data-list-magnusBuilder="'+data.guid+'"].visited').prop('checked', !!info.visited);
-		$('[data-list-magnusBuilder="'+data.guid+'"].captured').prop('checked', !!info.captured);
-	});
-
-	window.addHook('pluginmagnusBuilderRefreshAll', function() {
-		$('[data-list-magnusBuilder]').each(function(i, element) {
-			var guid = element.getAttribute("data-list-magnusBuilder");
-
-			var info = plugin.magnusBuilder.magnusBuilder[guid];
-			if(!info) info = { visited: false, captured: false };
-
-			var e = $(element);
-			if(e.hasClass('visited')) e.prop('checked', !!info.visited);
-			if(e.hasClass('captured')) e.prop('checked', !!info.captured);
-		});
-	});
-
-	function uniqueValue(guid) {
-		var info = plugin.magnusBuilder.magnusBuilder[guid];
-		if(!info) return 0;
-
-		if(info.visited && info.captured) return 2;
-		if(info.visited) return 1;
-	}
-
-	window.plugin.portalslist.fields.push({
-		title: "Visit",
-		value: function(portal) { return portal.options.guid; }, // we store the guid, but implement a custom comparator so the list does sort properly without closing and reopening the dialog
-		sort: function(guidA, guidB) {
-			return uniqueValue(guidA) - uniqueValue(guidB);
-		},
-		format: function(cell, portal, guid) {
-			var info = plugin.magnusBuilder.magnusBuilder[guid];
-			if(!info) info = { visited: false, captured: false };
-
-			$(cell).addClass("portal-list-magnusBuilder");
-
-			// for some reason, jQuery removes event listeners when the list is sorted. Therefore we use DOM's addEventListener
-			$('<input>')
-				.prop({
-					type: "checkbox",
-					className: "visited",
-					title: "Portal visited?",
-					checked: !!info.visited,
-				})
-				.attr("data-list-magnusBuilder", guid)
-				.appendTo(cell)
-				[0].addEventListener("change", function(ev) {
-					window.plugin.magnusBuilder.updateVisited(this.checked, guid);
-					ev.preventDefault();
-					return false;
-				}, false);
-			$('<input>')
-				.prop({
-					type: "checkbox",
-					className: "captured",
-					title: "Portal captured?",
-					checked: !!info.captured,
-				})
-				.attr("data-list-magnusBuilder", guid)
-				.appendTo(cell)
-				[0].addEventListener("change", function(ev) {
-					window.plugin.magnusBuilder.updateCaptured(this.checked, guid);
-					ev.preventDefault();
-					return false;
-				}, false);
-		},
-	});
-}
-
-window.plugin.magnusBuilder.onMissionChanged = function(data) {
-	if(!data.local) return;
-	
-	var mission = window.plugin.missions && window.plugin.missions.getMissionCache(data.mid, false);
-	if(!mission) return;
-	
-	window.plugin.magnusBuilder.checkMissionWaypoints(mission);
-};
-
-window.plugin.magnusBuilder.onMissionLoaded = function(data) {
-	// the mission has been loaded, but the dialog isn't visible yet.
-	// we'll wait a moment so the mission dialog is opened behind the confirmation prompt
-	setTimeout(function() {
-		window.plugin.magnusBuilder.checkMissionWaypoints(data.mission);
-	}, 0);
-};
-
-window.plugin.magnusBuilder.checkMissionWaypoints = function(mission) {
-	if(!(window.plugin.missions && window.plugin.missions.checkedMissions[mission.guid])) return;
-	
-	if(!mission.waypoints) return;
-	
-	function isValidWaypoint(wp) {
-		// might be hidden or field trip card
-		if(!(wp && wp.portal && wp.portal.guid)) return false;
-		
-		// only use hack, deploy, link, field and upgrade; ignore photo and passphrase
-		if(wp.objectiveNum <= 0 || wp.objectiveNum > 5) return false;
-		
-		return true;
-	}
-	function isVisited(wp) {
-		var guid = wp.portal.guid,
-			uniqueInfo = plugin.magnusBuilder.magnusBuilder[guid],
-			visited = (uniqueInfo && uniqueInfo.visited) || false;
-		
-		return visited;
-	}
-	
-	// check if all waypoints are already visited
-	if(mission.waypoints.every(function(wp) {
-		if(!isValidWaypoint(wp)) return true;
-		return isVisited(wp);
-	})) return;
-	
-	if(!confirm('The mission ' + mission.title + ' contains waypoints not yet marked as visited.\n\n' +
-			'Do you want to set them to \'visited\' now?'))
-		return;
-	
-	mission.waypoints.forEach(function(wp) {
-		if(!isValidWaypoint(wp)) return;
-		if(isVisited(wp)) return;
-		
-		plugin.magnusBuilder.setPortalVisited(wp.portal.guid);
-	});
-};
-
-
 var setup = function() {
 	window.pluginCreateHook('pluginmagnusBuilderUpdatemagnusBuilder');
 	window.pluginCreateHook('pluginmagnusBuilderRefreshAll');
-	
-	// to mark mission portals as visited
-	window.pluginCreateHook('plugin-missions-mission-changed');
-	window.pluginCreateHook('plugin-missions-loaded-mission');
-	
+
 	window.plugin.magnusBuilder.setupCSS();
 	window.plugin.magnusBuilder.setupContent();
 	window.plugin.magnusBuilder.loadLocal('magnusBuilder');
 	window.addPortalHighlighter('magnusBuilder', window.plugin.magnusBuilder.highlighter);
 	window.addHook('portalDetailsUpdated', window.plugin.magnusBuilder.onPortalDetailsUpdated);
-	window.addHook('publicChatDataAvailable', window.plugin.magnusBuilder.onPublicChatDataAvailable);
 	window.addHook('iitcLoaded', window.plugin.magnusBuilder.registerFieldForSyncing);
-	
-	window.addHook('plugin-missions-mission-changed', window.plugin.magnusBuilder.onMissionChanged);
-	window.addHook('plugin-missions-loaded-mission', window.plugin.magnusBuilder.onMissionLoaded);
-	
-	if(window.plugin.portalslist) {
-		window.plugin.magnusBuilder.setupPortalsList();
-	} else {
-		setTimeout(function() {
-			if(window.plugin.portalslist)
-				window.plugin.magnusBuilder.setupPortalsList();
-		}, 500);
-	}
 }
 
 //PLUGIN END //////////////////////////////////////////////////////////
