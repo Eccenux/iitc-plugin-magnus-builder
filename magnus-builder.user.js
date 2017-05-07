@@ -376,7 +376,7 @@ window.plugin.magnusBuilder.getSelectedPortals = function() {
 	var selection = {
 		polygons: [],
 		portals: []
-	}
+	};
 	if (!window.plugin.drawTools) {
 		return selection;
 	}
@@ -421,8 +421,7 @@ window.plugin.magnusBuilder.updateVisiblePortals = function(fullyCaptured) {
 	}
 
 	// confirmation
-	if (selection.portals.length === 0) {
-		alert('Are you sure you want to change state for all selected portals ('+selection.portals.length+')?');
+	if (!confirm('Are you sure you want to change state for all selected portals ('+selection.portals.length+')?')) {
 		return;
 	}
 
