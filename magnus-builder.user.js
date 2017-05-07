@@ -76,7 +76,7 @@ window.plugin.magnusBuilder.onPortalDetailsUpdated = function() {
 
 	$('#portaldetails > .imgpreview').after(plugin.magnusBuilder.contentHTML);
 	plugin.magnusBuilder.updateCheckedAndHighlight(guid);
-}
+};
 
 window.plugin.magnusBuilder.updateCheckedAndHighlight = function(guid) {
 	runHooks('pluginmagnusBuilderUpdatemagnusBuilder', { guid: guid });
@@ -97,7 +97,7 @@ window.plugin.magnusBuilder.updateCheckedAndHighlight = function(guid) {
 			window.setMarkerStyle (portals[guid], guid == selectedPortal);
 		}
 	}
-}
+};
 
 window.plugin.magnusBuilder.setPortalVisited = function(guid) {
 /*
@@ -116,7 +116,7 @@ window.plugin.magnusBuilder.setPortalVisited = function(guid) {
 	plugin.magnusBuilder.updateCheckedAndHighlight(guid);
 	plugin.magnusBuilder.sync(guid);
 */
-}
+};
 
 window.plugin.magnusBuilder.setPortalCaptured = function(guid) {
 /*
@@ -136,7 +136,7 @@ window.plugin.magnusBuilder.setPortalCaptured = function(guid) {
 	plugin.magnusBuilder.updateCheckedAndHighlight(guid);
 	plugin.magnusBuilder.sync(guid);
 */
-}
+};
 
 window.plugin.magnusBuilder.updateVisited = function(visited, guid) {
 /*
@@ -162,7 +162,7 @@ window.plugin.magnusBuilder.updateVisited = function(visited, guid) {
 	plugin.magnusBuilder.updateCheckedAndHighlight(guid);
 	plugin.magnusBuilder.sync(guid);
 */
-}
+};
 
 window.plugin.magnusBuilder.updateCaptured = function(captured, guid) {
 /*
@@ -188,7 +188,9 @@ window.plugin.magnusBuilder.updateCaptured = function(captured, guid) {
 	plugin.magnusBuilder.updateCheckedAndHighlight(guid);
 	plugin.magnusBuilder.sync(guid);
 */
-}
+};
+
+// <editor-fold desc="Storage/sync" defaultstate="collapsed">
 
 // stores the gived GUID for sync
 plugin.magnusBuilder.sync = function(guid) {
@@ -196,7 +198,7 @@ plugin.magnusBuilder.sync = function(guid) {
 	plugin.magnusBuilder.storeLocal('magnusBuilder');
 	plugin.magnusBuilder.storeLocal('updateQueue');
 	plugin.magnusBuilder.syncQueue();
-}
+};
 
 // sync the queue, but delay the actual sync to group a few updates in a single request
 window.plugin.magnusBuilder.syncQueue = function() {
@@ -214,13 +216,13 @@ window.plugin.magnusBuilder.syncQueue = function() {
 
 		plugin.sync.updateMap('magnusBuilder', 'magnusBuilder', Object.keys(plugin.magnusBuilder.updatingQueue));
 	}, plugin.magnusBuilder.SYNC_DELAY);
-}
+};
 
 //Call after IITC and all plugin loaded
 window.plugin.magnusBuilder.registerFieldForSyncing = function() {
 	if(!window.plugin.sync) return;
 	window.plugin.sync.registerMapForSync('magnusBuilder', 'magnusBuilder', window.plugin.magnusBuilder.syncCallback, window.plugin.magnusBuilder.syncInitialed);
-}
+};
 
 //Call after local or remote change uploaded
 window.plugin.magnusBuilder.syncCallback = function(pluginName, fieldName, e, fullUpdated) {
@@ -255,7 +257,7 @@ window.plugin.magnusBuilder.syncCallback = function(pluginName, fieldName, e, fu
 			window.runHooks('pluginmagnusBuilderUpdatemagnusBuilder', {guid: e.property});
 		}
 	}
-}
+};
 
 //syncing of the field is initialed, upload all queued update
 window.plugin.magnusBuilder.syncInitialed = function(pluginName, fieldName) {
@@ -265,7 +267,7 @@ window.plugin.magnusBuilder.syncInitialed = function(pluginName, fieldName) {
 			plugin.magnusBuilder.syncQueue();
 		}
 	}
-}
+};
 
 window.plugin.magnusBuilder.storeLocal = function(name) {
 	var key = window.plugin.magnusBuilder.FIELDS[name];
@@ -278,7 +280,7 @@ window.plugin.magnusBuilder.storeLocal = function(name) {
 	} else {
 		localStorage.removeItem(key);
 	}
-}
+};
 
 window.plugin.magnusBuilder.loadLocal = function(name) {
 	var key = window.plugin.magnusBuilder.FIELDS[name];
@@ -287,11 +289,10 @@ window.plugin.magnusBuilder.loadLocal = function(name) {
 	if(localStorage[key] !== undefined) {
 		plugin.magnusBuilder[name] = JSON.parse(localStorage[key]);
 	}
-}
+};
+// </editor-fold>
 
-/***************************************************************************************************************************************************************/
-/** HIGHLIGHTER ************************************************************************************************************************************************/
-/***************************************************************************************************************************************************************/
+// <editor-fold desc="Highlighter" defaultstate="collapsed">
 window.plugin.magnusBuilder.highlighter = {
 	highlight: function(data) {
 		var guid = data.portal.options.ent[0];
@@ -324,7 +325,8 @@ window.plugin.magnusBuilder.highlighter = {
 	setSelected: function(active) {
 		window.plugin.magnusBuilder.isHighlightActive = active;
 	}
-}
+};
+// </editor-fold>
 
 
 window.plugin.magnusBuilder.setupCSS = function() {
@@ -332,14 +334,14 @@ window.plugin.magnusBuilder.setupCSS = function() {
 	.prop("type", "text/css")
 	//.html("#magnusBuilder-container {\n  display: block;\n  text-align: center;\n  margin: 6px 3px 1px 3px;\n  padding: 0 4px;\n}\n#magnusBuilder-container label {\n  margin: 0 0.5em;\n}\n#magnusBuilder-container input {\n  vertical-align: middle;\n}\n\n.portal-list-magnusBuilder input[type=\'checkbox\'] {\n  padding: 0;\n  height: auto;\n  margin-top: -5px;\n  margin-bottom: -5px;\n}\n")
 	.appendTo("head");
-}
+};
 
 window.plugin.magnusBuilder.setupContent = function() {
 	plugin.magnusBuilder.contentHTML = '<div id="magnusBuilder-container">'
 		+ '<label><input type="checkbox" id="magnusBuilder-captured" onclick="window.plugin.magnusBuilder.updateCaptured($(this).prop(\'checked\'))"> Resonators Captured</label>'
 		+ '</div>';
 	plugin.magnusBuilder.disabledMessage = '<div id="magnusBuilder-container" class="help" title="Your browser does not support localStorage">Plugin magnusBuilder disabled</div>';
-}
+};
 
 var setup = function() {
 	window.pluginCreateHook('pluginmagnusBuilderUpdatemagnusBuilder');
@@ -351,7 +353,7 @@ var setup = function() {
 	window.addPortalHighlighter('magnusBuilder', window.plugin.magnusBuilder.highlighter);
 	window.addHook('portalDetailsUpdated', window.plugin.magnusBuilder.onPortalDetailsUpdated);
 	window.addHook('iitcLoaded', window.plugin.magnusBuilder.registerFieldForSyncing);
-}
+};
 
 //PLUGIN END //////////////////////////////////////////////////////////
 
