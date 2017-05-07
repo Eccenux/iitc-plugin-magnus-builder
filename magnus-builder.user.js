@@ -296,7 +296,7 @@ window.plugin.magnusBuilder.updateResonator = function(resonatorIndex, captured,
  * @param {Boolean} fullyCaptured Are all resonator captured.
  * @param {String} guid Portal GUID.
  */
-window.plugin.magnusBuilder.updateCaptured = function(fullyCaptured, guid, delaySync) {
+window.plugin.magnusBuilder.updateCaptured = function(fullyCaptured, guid) {
 	if(guid == undefined) guid = window.selectedPortal;
 
 	LOG('updateCaptured: ', fullyCaptured, guid);
@@ -319,10 +319,8 @@ window.plugin.magnusBuilder.updateCaptured = function(fullyCaptured, guid, delay
 		return;
 	}
 
-	if (!delaySync) {
-		plugin.magnusBuilder.updateCheckedAndHighlight(guid);
-		plugin.magnusBuilder.sync(guid);
-	}
+	plugin.magnusBuilder.updateCheckedAndHighlight(guid);
+	plugin.magnusBuilder.sync(guid);
 };
 
 // <editor-fold desc="Selected portals tools" defaultstate="collapsed">
@@ -432,28 +430,7 @@ window.plugin.magnusBuilder.updateVisiblePortals = function(fullyCaptured) {
 	for (var i = 0; i < selection.portals.length; i++) {
 		var guid = selection.portals[i];
 		plugin.magnusBuilder.updateCaptured(fullyCaptured, guid);
-		//plugin.magnusBuilder.updateCaptured(fullyCaptured, guid, true);
-		//plugin.magnusBuilder.updateQueue[guid] = true;
-		//plugin.magnusBuilder.storeLocal('updateQueue');
 	}
-
-	/*
-	// a full update - update the selected portal sidebar
-	if (window.selectedPortal) {
-		plugin.magnusBuilder.updateCheckedAndHighlight(window.selectedPortal);
-	}
-	// and also update all highlights, if needed
-	if (window.plugin.magnusBuilder.isHighlightActive) {
-		resetHighlightedPortals();
-	}
-
-	// store changes
-	plugin.magnusBuilder.storeLocal('magnusBuilder');
-	plugin.magnusBuilder.syncQueue();
-
-	// notify about mass changes
-	window.runHooks('pluginmagnusBuilderRefreshAll');
-	*/
 };
 
 // <editor-fold desc="Storage/sync" defaultstate="collapsed">
