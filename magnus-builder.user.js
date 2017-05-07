@@ -55,12 +55,17 @@ window.plugin.magnusBuilder.isHighlightActive = false;
 function LOG() {
 	var args = Array.prototype.slice.call(arguments); // Make real array from arguments
 	args.unshift("[magnusBuilder] ");
-	console.log.apply(console.log, args);
+	console.log.apply(console, args);
+}
+function LOGwarn() {
+	var args = Array.prototype.slice.call(arguments); // Make real array from arguments
+	args.unshift("[magnusBuilder] ");
+	console.warn.apply(console, args);
 }
 
 /**
-	Portal details loaded.
-*/
+ * Portal details loaded.
+ */
 window.plugin.magnusBuilder.onPortalDetailsUpdated = function() {
 	if(typeof(Storage) === "undefined") {
 		$('#portaldetails > .imgpreview').after(plugin.magnusBuilder.disabledMessage);
@@ -102,15 +107,20 @@ window.plugin.magnusBuilder.onPortalDetailsUpdated = function() {
 	plugin.magnusBuilder.updateCheckedAndHighlight(guid);
 };
 
+/**
+ * Update checboxes
+ * @param {type} guid
+ * @returns {undefined}
+ */
 window.plugin.magnusBuilder.updateCheckedAndHighlight = function(guid) {
 	runHooks('pluginmagnusBuilderUpdatemagnusBuilder', { guid: guid });
 
 	if (guid == window.selectedPortal) {
 
 		/*
-		var uniqueInfo = plugin.magnusBuilder.magnusBuilder[guid],
-			visited = (uniqueInfo && uniqueInfo.visited) || false,
-			captured = (uniqueInfo && uniqueInfo.captured) || false;
+		var portalState = plugin.magnusBuilder.magnusBuilder[guid],
+			visited = (portalState && portalState.visited) || false,
+			captured = (portalState && portalState.captured) || false;
 		$('#visited').prop('checked', visited);
 		$('#magnusBuilder-captured').prop('checked', captured);
 		*/
@@ -124,57 +134,97 @@ window.plugin.magnusBuilder.updateCheckedAndHighlight = function(guid) {
 };
 
 /**
+ * Gets state for the portal.
+ *
+ * Note! This also sets the initial portal state.
+ *
+ * Note! `all` MIGHT NOT be set if all resonators were selected manually.
+ *
+ * @param {String} guid Portal GUID.
+ * @returns {Object} State object.
+ */
+window.plugin.magnusBuilder.getOrCreatePortalState = function(guid) {
+	var portalState = plugin.magnusBuilder.magnusBuilder[guid];
+	if (!portalState) {
+		plugin.magnusBuilder.magnusBuilder[guid] = portalState = {
+			all: false,	// true if all-captured was selected
+			indexes: []	// indexes of captured portals (state before `all` was set)
+		};
+	}
+	return portalState;
+};
+
+/**
  * Update/set resonator state.
  * @param {Number} resonatorIndex With North beign 0, NE being 1 and continues clockwise.
  * @param {Boolean} captured Is resonator captured.
  * @param {String} guid Portal GUID.
  */
 window.plugin.magnusBuilder.updateResonator = function(resonatorIndex, captured, guid) {
-	LOG('updateVisited:', resonatorIndex, captured, guid);
-/*
 	if(guid == undefined) guid = window.selectedPortal;
 
-	var uniqueInfo = plugin.magnusBuilder.magnusBuilder[guid];
-	if (!uniqueInfo) {
-		plugin.magnusBuilder.magnusBuilder[guid] = uniqueInfo = {
-			visited: false,
-			captured: false
-		};
+	LOG('updateVisited:', resonatorIndex, captured, guid);
+
+	var portalState = plugin.magnusBuilder.getOrCreatePortalState(guid);
+	var stateChanged = false;
+
+	// special case -- unselect when `all` was selected
+	if (!captured && portalState.all) {
+		stateChanged = true;
+		// we need to rebuild the array because it don't have to have all resonators
+		portalState.indexes.length = 0;
+		for (var i = 0; i < 8; i++) {
+			if (i !== resonatorIndex) {
+				portalState.indexes.push(i);
+			}
+		}
+	// that shouldn't happen
+	} else if (captured && portalState.all) {
+		LOGwarn('captured && portalState.all');
+	// !portalState.all
+	} else {
+		var wasCapturedIndex = portalState.indexes.indexOf(resonatorIndex);
+		var wasCaptured = wasCapturedIndex >= 0;
+		if (wasCaptured !== captured) {
+			stateChanged = true;
+			// add index
+			if (captured) {
+				portalState.indexes.push(resonatorIndex);
+			// remove index
+			} else {
+				portalState.indexes.splice(wasCapturedIndex, 1);
+			}
+		}
 	}
 
-	if(visited == uniqueInfo.visited) return;
-
-	if (visited) {
-		uniqueInfo.visited = true;
-	} else { // not visited --> not captured
-		uniqueInfo.visited = false;
-		uniqueInfo.captured = false;
+	if(!stateChanged) {
+		LOGwarn('state didn\'t change');
+		return;
 	}
 
 	plugin.magnusBuilder.updateCheckedAndHighlight(guid);
 	plugin.magnusBuilder.sync(guid);
-*/
 };
 
 window.plugin.magnusBuilder.updateCaptured = function(captured, guid) {
 /*
 	if(guid == undefined) guid = window.selectedPortal;
 
-	var uniqueInfo = plugin.magnusBuilder.magnusBuilder[guid];
-	if (!uniqueInfo) {
-		plugin.magnusBuilder.magnusBuilder[guid] = uniqueInfo = {
+	var portalState = plugin.magnusBuilder.magnusBuilder[guid];
+	if (!portalState) {
+		plugin.magnusBuilder.magnusBuilder[guid] = portalState = {
 			visited: false,
 			captured: false
 		};
 	}
 
-	if(captured == uniqueInfo.captured) return;
+	if(captured == portalState.captured) return;
 
 	if (captured) { // captured --> visited
-		uniqueInfo.captured = true;
-		uniqueInfo.visited = true;
+		portalState.captured = true;
+		portalState.visited = true;
 	} else {
-		uniqueInfo.captured = false;
+		portalState.captured = false;
 	}
 
 	plugin.magnusBuilder.updateCheckedAndHighlight(guid);
@@ -288,19 +338,19 @@ window.plugin.magnusBuilder.loadLocal = function(name) {
 window.plugin.magnusBuilder.highlighter = {
 	highlight: function(data) {
 		var guid = data.portal.options.ent[0];
-		var uniqueInfo = window.plugin.magnusBuilder.magnusBuilder[guid];
+		var portalState = window.plugin.magnusBuilder.magnusBuilder[guid];
 
 		var style = {};
 
-		if (uniqueInfo) {
-			if (uniqueInfo.captured) {
+		if (portalState) {
+			if (portalState.captured) {
 				// captured (and, implied, visited too) - no highlights
 
-			} else if (uniqueInfo.visited) {
+			} else if (portalState.visited) {
 				style.fillColor = 'yellow';
 				style.fillOpacity = 0.6;
 			} else {
-				// we have an 'uniqueInfo' entry for the portal, but it's not set visited or captured?
+				// we have an 'portalState' entry for the portal, but it's not set visited or captured?
 				// could be used to flag a portal you don't plan to visit, so use a less opaque red
 				style.fillColor = 'red';
 				style.fillOpacity = 0.5;
