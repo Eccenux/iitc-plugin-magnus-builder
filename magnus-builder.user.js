@@ -90,6 +90,10 @@ window.plugin.magnusBuilder.onPortalDetailsUpdated = function() {
 
 	// append all-captured checkbox
 	$('#portaldetails > #resodetails').before(plugin.magnusBuilder.contentHTML);
+	$('#portaldetails input#magnusBuilder-captured').click(function () {
+		var captured = this.checked;
+		plugin.magnusBuilder.updateCaptured(captured);
+	});
 
 	// resonator cells order to N-clockwise order
 	var clockwiseOrder = [
@@ -102,7 +106,7 @@ window.plugin.magnusBuilder.onPortalDetailsUpdated = function() {
 	$('#portaldetails #resodetails td').each(function(index){
 		var resonatorIndex = clockwiseOrder[index];
 		$(this).prepend('<input type="checkbox" class="magnusBuilder-resonator" data-index="'+resonatorIndex+'">')
-		.on('click', 'input', function () {
+		.on('click', 'input.magnusBuilder-resonator', function () {
 			var captured = this.checked;
 			plugin.magnusBuilder.updateResonator(resonatorIndex, captured);
         });
@@ -124,7 +128,7 @@ window.plugin.magnusBuilder.updateCheckedAndHighlight = function(guid) {
 	if (guid == window.selectedPortal) {
 
 		var portalState = plugin.magnusBuilder.getPortalState(guid);
-		$('#magnusBuilder-captured').prop('checked', portalState.all);
+		$('#portaldetails input#magnusBuilder-captured').prop('checked', portalState.all);
 		$('#portaldetails input.magnusBuilder-resonator').each(function(){
 			var wasCaptured = false;
 			if (portalState.all) {
@@ -233,7 +237,7 @@ window.plugin.magnusBuilder.getPortalState = function(guid) {
 window.plugin.magnusBuilder.updateResonator = function(resonatorIndex, captured, guid) {
 	if(guid == undefined) guid = window.selectedPortal;
 
-	LOG('updateVisited:', resonatorIndex, captured, guid);
+	LOG('updateResonator: ', resonatorIndex, captured, guid);
 
 	var portalState = plugin.magnusBuilder.getOrCreatePortalState(guid);
 	var stateChanged = false;
@@ -276,30 +280,34 @@ window.plugin.magnusBuilder.updateResonator = function(resonatorIndex, captured,
 	plugin.magnusBuilder.sync(guid);
 };
 
-window.plugin.magnusBuilder.updateCaptured = function(captured, guid) {
-/*
+/**
+ * Update/set all-resonators captured state.
+ *
+ * Note. Switching off captured state will bring back previously set state.
+ *
+ * @param {Boolean} fullyCaptured Are all resonator captured.
+ * @param {String} guid Portal GUID.
+ */
+window.plugin.magnusBuilder.updateCaptured = function(fullyCaptured, guid) {
 	if(guid == undefined) guid = window.selectedPortal;
 
-	var portalState = plugin.magnusBuilder.magnusBuilder[guid];
-	if (!portalState) {
-		plugin.magnusBuilder.magnusBuilder[guid] = portalState = {
-			visited: false,
-			captured: false
-		};
+	LOG('updateCaptured: ', fullyCaptured, guid);
+
+	var portalState = plugin.magnusBuilder.getOrCreatePortalState(guid);
+	var stateChanged = false;
+
+	if (fullyCaptured !== portalState.all) {
+		stateChanged = true;
+		portalState.all = fullyCaptured;
 	}
 
-	if(captured == portalState.captured) return;
-
-	if (captured) { // captured --> visited
-		portalState.captured = true;
-		portalState.visited = true;
-	} else {
-		portalState.captured = false;
+	if(!stateChanged) {
+		LOGwarn('state didn\'t change');
+		return;
 	}
 
 	plugin.magnusBuilder.updateCheckedAndHighlight(guid);
 	plugin.magnusBuilder.sync(guid);
-*/
 };
 
 // <editor-fold desc="Storage/sync" defaultstate="collapsed">
@@ -462,7 +470,7 @@ window.plugin.magnusBuilder.setupCSS = function() {
 
 window.plugin.magnusBuilder.setupContent = function() {
 	plugin.magnusBuilder.contentHTML = '<div id="magnusBuilder-container">'
-		+ '<label><input type="checkbox" id="magnusBuilder-captured" onclick="window.plugin.magnusBuilder.updateCaptured($(this).prop(\'checked\'))"> All Resonators Captured</label>'
+		+ '<label><input type="checkbox" id="magnusBuilder-captured"> All Resonators Captured</label>'
 		+ '</div>';
 	plugin.magnusBuilder.disabledMessage = '<div id="magnusBuilder-container" class="help" title="Your browser does not support localStorage">Plugin magnusBuilder disabled</div>';
 };
