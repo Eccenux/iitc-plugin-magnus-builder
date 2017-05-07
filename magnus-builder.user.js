@@ -2,7 +2,7 @@
 // @id             iitc-plugin-magnus-builder@eccenux
 // @name           IITC plugin: Magnus builder tracker
 // @category       Misc
-// @version        0.0.3
+// @version        0.0.4
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @description    Allow manual entry of deployed, unique resonators. Use the 'highlighter-magnusBuilder' plugin to show the magnusBuilder on the map, and 'sync' to share between multiple browsers or desktop/mobile. It will try and guess which portals you have captured from portal details, but this will not catch every case.
 // @include        https://*.ingress.com/intel*
@@ -590,11 +590,37 @@ window.plugin.magnusBuilder.setupCSS = function() {
 	.appendTo("head");
 };
 
+  // Manual import, export and reset data
+window.plugin.magnusBuilder.openDialog = function() {
+    dialog({
+		html: plugin.magnusBuilder.dialogContentHTML,
+		dialogClass: 'ui-dialog-magnusBuilder',
+		title: 'Magnus Builder'
+    });
+};
+
 window.plugin.magnusBuilder.setupContent = function() {
 	plugin.magnusBuilder.contentHTML = '<div id="magnusBuilder-container">'
-		+ '<label><input type="checkbox" id="magnusBuilder-captured"> All Resonators Captured</label>'
-		+ '</div>';
+			+ '<p><label><input type="checkbox" id="magnusBuilder-captured"> All Resonators Captured</label></p>'
+		+ '</div>'
+	;
 	plugin.magnusBuilder.disabledMessage = '<div id="magnusBuilder-container" class="help" title="Your browser does not support localStorage">Plugin magnusBuilder disabled</div>';
+
+	// add link in toolkit to open dialog
+	$('#toolbox').append('<a \n\
+		onclick="plugin.magnusBuilder.openDialog();return false;" \n\
+		title="Magnus Builder mass operations for current selection">Magnus Builder</a>');
+
+	// dialog
+	plugin.magnusBuilder.dialogContentHTML = ''
+		+'<p>Draw polygon(s) to "select" portals.<p>'
+		+'<p>Mark selected portals as: '
+			+'<a id="magnusBuilder-massOp-done" onclick="plugin.magnusBuilder.updateVisiblePortals(true); return false"> Done</a> '
+			+' &bull; '
+			+'<a id="magnusBuilder-massOp-undone" onclick="plugin.magnusBuilder.updateVisiblePortals(false); return false"> Not done</a>'
+		+'</p>'
+	;
+
 };
 
 var setup = function() {
