@@ -50,6 +50,15 @@ window.plugin.magnusBuilder.contentHTML = null;
 window.plugin.magnusBuilder.isHighlightActive = false;
 
 /**
+ * Very simple logger.
+ */
+function LOG() {
+	var args = Array.prototype.slice.call(arguments); // Make real array from arguments
+	args.unshift("[magnusBuilder] ");
+	console.log.apply(console.log, args);
+}
+
+/**
 	Portal details loaded.
 */
 window.plugin.magnusBuilder.onPortalDetailsUpdated = function() {
@@ -75,6 +84,21 @@ window.plugin.magnusBuilder.onPortalDetailsUpdated = function() {
 	}
 
 	$('#portaldetails > .imgpreview').after(plugin.magnusBuilder.contentHTML);
+	// resonator cells order to N-clockwise order
+	var clockwiseOrder = [
+		0, 1,
+		7, 2,
+		6, 3,
+		5, 4
+	];
+	$('#portaldetails #resodetails td').each(function(index){
+		var resonatorIndex = clockwiseOrder[index];
+		$(this).append('<input type="checkbox" class="resonator-box">')
+		.on('click', 'input', function () {
+			var captured = this.checked;
+			plugin.magnusBuilder.updateResonator(resonatorIndex, captured);
+        });
+	});
 	plugin.magnusBuilder.updateCheckedAndHighlight(guid);
 };
 
@@ -99,46 +123,14 @@ window.plugin.magnusBuilder.updateCheckedAndHighlight = function(guid) {
 	}
 };
 
-window.plugin.magnusBuilder.setPortalVisited = function(guid) {
-/*
-	var uniqueInfo = plugin.magnusBuilder.magnusBuilder[guid];
-	if (uniqueInfo) {
-		if(uniqueInfo.visited) return;
-
-		uniqueInfo.visited = true;
-	} else {
-		plugin.magnusBuilder.magnusBuilder[guid] = {
-			visited: true,
-			captured: false
-		};
-	}
-
-	plugin.magnusBuilder.updateCheckedAndHighlight(guid);
-	plugin.magnusBuilder.sync(guid);
-*/
-};
-
-window.plugin.magnusBuilder.setPortalCaptured = function(guid) {
-/*
-	var uniqueInfo = plugin.magnusBuilder.magnusBuilder[guid];
-	if (uniqueInfo) {
-		if(uniqueInfo.visited && uniqueInfo.captured) return;
-
-		uniqueInfo.visited = true;
-		uniqueInfo.captured = true;
-	} else {
-		plugin.magnusBuilder.magnusBuilder[guid] = {
-			visited: true,
-			captured: true
-		};
-	}
-
-	plugin.magnusBuilder.updateCheckedAndHighlight(guid);
-	plugin.magnusBuilder.sync(guid);
-*/
-};
-
-window.plugin.magnusBuilder.updateVisited = function(visited, guid) {
+/**
+ * Update/set resonator state.
+ * @param {Number} resonatorIndex With North beign 0, NE being 1 and continues clockwise.
+ * @param {Boolean} captured Is resonator captured.
+ * @param {String} guid Portal GUID.
+ */
+window.plugin.magnusBuilder.updateResonator = function(resonatorIndex, captured, guid) {
+	LOG('updateVisited:', resonatorIndex, captured, guid);
 /*
 	if(guid == undefined) guid = window.selectedPortal;
 
