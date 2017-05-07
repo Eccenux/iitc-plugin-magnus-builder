@@ -129,17 +129,23 @@ window.plugin.magnusBuilder.updateCheckedAndHighlight = function(guid) {
 
 		var portalState = plugin.magnusBuilder.getPortalState(guid);
 		$('#portaldetails input#magnusBuilder-captured').prop('checked', portalState.all);
-		$('#portaldetails input.magnusBuilder-resonator').each(function(){
-			var wasCaptured = false;
-			if (portalState.all) {
-				wasCaptured = true;
-			}
-			else {
+		// all selected
+		if (portalState.all || portalState.indexes.length >= 8) {
+			LOG('quick init - all captured');
+			$('#portaldetails input.magnusBuilder-resonator').prop('checked', true);
+		// all un-selected
+		} else if (portalState.indexes.length === 0) {
+			LOG('quick init - all un-captured');
+			$('#portaldetails input.magnusBuilder-resonator').prop('checked', false);
+		// individual
+		} else {
+			LOG('slow init - individual; ', portalState);
+			$('#portaldetails input.magnusBuilder-resonator').each(function(){
 				var resonatorIndex = parseInt(this.getAttribute('data-index'));
-				wasCaptured = portalState.indexes.indexOf(resonatorIndex) >= 0;
-			}
-			$(this).prop('checked', wasCaptured);
-		});
+				var wasCaptured = portalState.indexes.indexOf(resonatorIndex) >= 0;
+				$(this).prop('checked', wasCaptured);
+			});
+		}
 	}
 
 	if (window.plugin.magnusBuilder.isHighlightActive) {
