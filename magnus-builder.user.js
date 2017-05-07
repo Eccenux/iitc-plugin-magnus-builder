@@ -2,7 +2,7 @@
 // @id             iitc-plugin-magnus-builder@eccenux
 // @name           IITC plugin: Magnus builder tracker
 // @category       Misc
-// @version        0.0.4
+// @version        0.0.5
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @description    Allow manual entry of deployed, unique resonators. Use the 'highlighter-magnusBuilder' plugin to show the magnusBuilder on the map, and 'sync' to share between multiple browsers or desktop/mobile. It will try and guess which portals you have captured from portal details, but this will not catch every case.
 // @include        https://*.ingress.com/intel*
@@ -294,12 +294,15 @@ window.plugin.magnusBuilder.updateResonator = function(resonatorIndex, captured,
  * Note. Switching off captured state will bring back previously set state.
  *
  * @param {Boolean} fullyCaptured Are all resonator captured.
- * @param {String} guid Portal GUID.
+ * @param {String} guid [optional] Portal GUID (defaults to `selectedPortal`).
+ * @param {Boolean} delaySync [optional] (default=false) If true then data will not be saved to server nor will portal details state change.
  */
-window.plugin.magnusBuilder.updateCaptured = function(fullyCaptured, guid) {
+window.plugin.magnusBuilder.updateCaptured = function(fullyCaptured, guid, delaySync) {
 	if(guid == undefined) guid = window.selectedPortal;
 
-	LOG('updateCaptured: ', fullyCaptured, guid);
+	if (!delaySync) {
+		LOG('updateCaptured: ', fullyCaptured, guid);
+	}
 
 	var portalState = plugin.magnusBuilder.getOrCreatePortalState(guid);
 	var stateChanged = false;
@@ -312,6 +315,10 @@ window.plugin.magnusBuilder.updateCaptured = function(fullyCaptured, guid) {
 		if (portalState.all && portalState.indexes.length >= 8) {
 			portalState.indexes.length = 0;
 		}
+	}
+
+	if (delaySync) {
+		return;
 	}
 
 	if(!stateChanged) {
@@ -428,11 +435,46 @@ window.plugin.magnusBuilder.updateVisiblePortals = function(fullyCaptured) {
 	// find and set state for portals in polygons
 	for (var i = 0; i < selection.portals.length; i++) {
 		var guid = selection.portals[i];
-		plugin.magnusBuilder.updateCaptured(fullyCaptured, guid);
+		plugin.magnusBuilder.updateCaptured(fullyCaptured, guid, true);
 	}
+	plugin.magnusBuilder.massPortalsUpdate(selection.portals);
+};
+
+/**
+ * Saves state of many portals to server and runs GUI updates.
+ *
+ * This should be run after many portal state changes.
+ * Use especially with `delaySync=true` in `updateCaptured`.
+ *
+ * @param {Array} portals Portal GUIDs
+ */
+window.plugin.magnusBuilder.massPortalsUpdate = function(portals) {
+	// a full update - update the selected portal sidebar
+	if (window.selectedPortal) {
+		plugin.magnusBuilder.updateCheckedAndHighlight(window.selectedPortal);
+	}
+	// and also update all highlights, if needed
+	if (window.plugin.magnusBuilder.isHighlightActive) {
+		resetHighlightedPortals();
+	}
+
+	// save to server
+	plugin.sync.updateMap('magnusBuilder', 'magnusBuilder', portals);
 };
 
 // <editor-fold desc="Storage/sync" defaultstate="collapsed">
+
+/**
+ * Forces saving all portals.
+ */
+window.plugin.magnusBuilder.forceSync = function() {
+	var allGuids = Object.keys(plugin.magnusBuilder.magnusBuilder);
+	// confirmation
+	if (!confirm('Are you REALLY sure you want to force saving all portals ('+allGuids.length+')?')) {
+		return;
+	}
+	plugin.sync.updateMap('magnusBuilder', 'magnusBuilder', allGuids);
+};
 
 // stores the gived GUID for sync
 plugin.magnusBuilder.sync = function(guid) {
