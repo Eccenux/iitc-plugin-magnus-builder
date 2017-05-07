@@ -252,6 +252,8 @@ window.plugin.magnusBuilder.updateResonator = function(resonatorIndex, captured,
 				portalState.indexes.push(i);
 			}
 		}
+		// `all` is no longer true
+		portalState.all = false;
 	// that shouldn't happen
 	} else if (captured && portalState.all) {
 		LOGwarn('captured && portalState.all');
