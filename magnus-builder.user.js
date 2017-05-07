@@ -416,27 +416,24 @@ window.plugin.magnusBuilder.loadLocal = function(name) {
 window.plugin.magnusBuilder.highlighter = {
 	highlight: function(data) {
 		var guid = data.portal.options.ent[0];
-		var portalState = window.plugin.magnusBuilder.magnusBuilder[guid];
+		var portalState = plugin.magnusBuilder.getPortalState(guid);
 
 		var style = {};
 
-		if (portalState) {
-			if (portalState.captured) {
-				// captured (and, implied, visited too) - no highlights
-
-			} else if (portalState.visited) {
-				style.fillColor = 'yellow';
-				style.fillOpacity = 0.6;
-			} else {
-				// we have an 'portalState' entry for the portal, but it's not set visited or captured?
-				// could be used to flag a portal you don't plan to visit, so use a less opaque red
-				style.fillColor = 'red';
-				style.fillOpacity = 0.5;
-			}
-		} else {
-			// no visit data at all
+		// Opaque -- all resonators captured.
+		if (portalState.all || portalState.indexes.length === 8) {
+			style.fillOpacity = 0.2;
+			style.opacity = 0.2;
+		}
+		// Red -- no resonators captured.
+		else if (portalState.indexes.length === 0) {
 			style.fillColor = 'red';
 			style.fillOpacity = 0.7;
+		}
+		// Yellow -- some resonators captured.
+		else {
+			style.fillColor = 'gold';
+			style.fillOpacity = 0.8;
 		}
 
 		data.portal.setStyle(style);
