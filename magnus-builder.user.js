@@ -101,7 +101,7 @@ window.plugin.magnusBuilder.onPortalDetailsUpdated = function() {
 	// append individual resonator checkboxes
 	$('#portaldetails #resodetails td').each(function(index){
 		var resonatorIndex = clockwiseOrder[index];
-		$(this).prepend('<input type="checkbox" class="magnusBuilder-resonator">')
+		$(this).prepend('<input type="checkbox" class="magnusBuilder-resonator" data-index="'+resonatorIndex+'">')
 		.on('click', 'input', function () {
 			var captured = this.checked;
 			plugin.magnusBuilder.updateResonator(resonatorIndex, captured);
@@ -113,22 +113,29 @@ window.plugin.magnusBuilder.onPortalDetailsUpdated = function() {
 };
 
 /**
- * Update checboxes.
- * @param {type} guid
+ * Update/init checboxes state.
+ * @param {String} guid
  * @returns {undefined}
  */
 window.plugin.magnusBuilder.updateCheckedAndHighlight = function(guid) {
 	runHooks('pluginmagnusBuilderUpdatemagnusBuilder', { guid: guid });
 
+	// this portal details are opened
 	if (guid == window.selectedPortal) {
 
-		/*
-		var portalState = plugin.magnusBuilder.magnusBuilder[guid],
-			visited = (portalState && portalState.visited) || false,
-			captured = (portalState && portalState.captured) || false;
-		$('#visited').prop('checked', visited);
-		$('#magnusBuilder-captured').prop('checked', captured);
-		*/
+		var portalState = plugin.magnusBuilder.getPortalState(guid);
+		$('#magnusBuilder-captured').prop('checked', portalState.all);
+		$('#portaldetails input.magnusBuilder-resonator').each(function(){
+			var wasCaptured = false;
+			if (portalState.all) {
+				wasCaptured = true;
+			}
+			else {
+				var resonatorIndex = parseInt(this.getAttribute('data-index'));
+				wasCaptured = portalState.indexes.indexOf(resonatorIndex) >= 0;
+			}
+			$(this).prop('checked', wasCaptured);
+		});
 	}
 
 	if (window.plugin.magnusBuilder.isHighlightActive) {
