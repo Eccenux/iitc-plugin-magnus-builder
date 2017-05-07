@@ -2,7 +2,7 @@
 // @id             iitc-plugin-magnus-builder@eccenux
 // @name           IITC plugin: Magnus builder tracker
 // @category       Misc
-// @version        0.0.2
+// @version        0.0.3
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @description    Allow manual entry of deployed, unique resonators. Use the 'highlighter-magnusBuilder' plugin to show the magnusBuilder on the map, and 'sync' to share between multiple browsers or desktop/mobile. It will try and guess which portals you have captured from portal details, but this will not catch every case.
 // @include        https://*.ingress.com/intel*
@@ -427,6 +427,8 @@ window.plugin.magnusBuilder.loadLocal = function(name) {
 
 // <editor-fold desc="Highlighter" defaultstate="collapsed">
 window.plugin.magnusBuilder.highlighter = {
+	title: 'Magnus Builder',	// this is set in setup as a user-visible name
+	
 	highlight: function(data) {
 		var guid = data.portal.options.ent[0];
 		var portalState = plugin.magnusBuilder.getPortalState(guid);
@@ -492,7 +494,7 @@ var setup = function() {
 	window.plugin.magnusBuilder.setupCSS();
 	window.plugin.magnusBuilder.setupContent();
 	window.plugin.magnusBuilder.loadLocal('magnusBuilder');
-	window.addPortalHighlighter('magnusBuilder', window.plugin.magnusBuilder.highlighter);
+	window.addPortalHighlighter(window.plugin.magnusBuilder.highlighter.title, window.plugin.magnusBuilder.highlighter);
 	window.addHook('portalDetailsUpdated', window.plugin.magnusBuilder.onPortalDetailsUpdated);
 	window.addHook('iitcLoaded', window.plugin.magnusBuilder.registerFieldForSyncing);
 };
