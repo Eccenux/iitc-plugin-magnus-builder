@@ -68,7 +68,7 @@ function LOGwarn() {
  */
 window.plugin.magnusBuilder.onPortalDetailsUpdated = function() {
 	if(typeof(Storage) === "undefined") {
-		$('#portaldetails > .imgpreview').after(plugin.magnusBuilder.disabledMessage);
+		$('#portaldetails > #resodetails').before(plugin.magnusBuilder.disabledMessage);
 		return;
 	}
 
@@ -88,7 +88,9 @@ window.plugin.magnusBuilder.onPortalDetailsUpdated = function() {
 		*/
 	}
 
-	$('#portaldetails > .imgpreview').after(plugin.magnusBuilder.contentHTML);
+	// append all-captured checkbox
+	$('#portaldetails > #resodetails').before(plugin.magnusBuilder.contentHTML);
+
 	// resonator cells order to N-clockwise order
 	var clockwiseOrder = [
 		0, 1,
@@ -96,14 +98,17 @@ window.plugin.magnusBuilder.onPortalDetailsUpdated = function() {
 		6, 3,
 		5, 4
 	];
+	// append individual resonator checkboxes
 	$('#portaldetails #resodetails td').each(function(index){
 		var resonatorIndex = clockwiseOrder[index];
-		$(this).append('<input type="checkbox" class="resonator-box">')
+		$(this).prepend('<input type="checkbox" class="magnusBuilder-resonator">')
 		.on('click', 'input', function () {
 			var captured = this.checked;
 			plugin.magnusBuilder.updateResonator(resonatorIndex, captured);
         });
 	});
+
+	// init state
 	plugin.magnusBuilder.updateCheckedAndHighlight(guid);
 };
 
@@ -374,13 +379,25 @@ window.plugin.magnusBuilder.highlighter = {
 window.plugin.magnusBuilder.setupCSS = function() {
 	$("<style>")
 	.prop("type", "text/css")
-	//.html("#magnusBuilder-container {\n  display: block;\n  text-align: center;\n  margin: 6px 3px 1px 3px;\n  padding: 0 4px;\n}\n#magnusBuilder-container label {\n  margin: 0 0.5em;\n}\n#magnusBuilder-container input {\n  vertical-align: middle;\n}\n\n.portal-list-magnusBuilder input[type=\'checkbox\'] {\n  padding: 0;\n  height: auto;\n  margin-top: -5px;\n  margin-bottom: -5px;\n}\n")
+	.html("\
+	#magnusBuilder-container {\n\
+		display: block;\n  text-align: center;\n\
+		margin: .6em 0 .3em;\n\
+		padding: 0 .5em;\n\
+	}\n\
+	#magnusBuilder-container label {\n\
+		margin: 0 .5em;\n\
+	}\n\
+	#magnusBuilder-container input {\n\
+		vertical-align: middle;\n\
+	}\n\
+	")
 	.appendTo("head");
 };
 
 window.plugin.magnusBuilder.setupContent = function() {
 	plugin.magnusBuilder.contentHTML = '<div id="magnusBuilder-container">'
-		+ '<label><input type="checkbox" id="magnusBuilder-captured" onclick="window.plugin.magnusBuilder.updateCaptured($(this).prop(\'checked\'))"> Resonators Captured</label>'
+		+ '<label><input type="checkbox" id="magnusBuilder-captured" onclick="window.plugin.magnusBuilder.updateCaptured($(this).prop(\'checked\'))"> All Resonators Captured</label>'
 		+ '</div>';
 	plugin.magnusBuilder.disabledMessage = '<div id="magnusBuilder-container" class="help" title="Your browser does not support localStorage">Plugin magnusBuilder disabled</div>';
 };
