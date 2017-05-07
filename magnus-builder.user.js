@@ -2,7 +2,7 @@
 // @id             iitc-plugin-magnus-builder@eccenux
 // @name           IITC plugin: Magnus builder tracker
 // @category       Misc
-// @version        0.0.5
+// @version        0.0.6
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @description    Allow manual entry of deployed, unique resonators. Use the 'highlighter-magnusBuilder' plugin to show the magnusBuilder on the map, and 'sync' to share between multiple browsers or desktop/mobile. It will try and guess which portals you have captured from portal details, but this will not catch every case.
 // @include        https://*.ingress.com/intel*
@@ -332,16 +332,79 @@ window.plugin.magnusBuilder.updateCaptured = function(fullyCaptured, guid, delay
 
 // <editor-fold desc="Selected portals tools" defaultstate="collapsed">
 /**
+ * Checks if the point is contained within a polygon.
+ *
+ * Based on //https://rosettacode.org/wiki/Ray-casting_algorithm
+ *
+ * @param {Array} polygonPoints Array of LatLng points creating a polygon.
+ * @param {Object} point LatLng point to check.
+ * @returns {Boolean}
+ */
+var rayCastingUtils = {
+	/**
+	 * Checks if the point is contained within a polygon.
+	 *
+	 * Based on //https://rosettacode.org/wiki/Ray-casting_algorithm
+	 *
+	 * @param {Array} polygonPoints Array of LatLng points creating a polygon.
+	 * @param {Object} point LatLng point to check.
+	 * @returns {Boolean}
+	 */
+	contains : function (polygonPoints, point) {
+		var lat = point.lat;
+		var lng = point.lng;
+		var count = 0;
+		for (var b = 0; b < polygonPoints.length; b++) {
+			var vertex1 = polygonPoints[b];
+			var vertex2 = polygonPoints[(b + 1) % polygonPoints.length];
+			if (this.west(vertex1, vertex2, lng, lat))
+				++count;
+		}
+		return count % 2 ? true : false;
+	},
+	/**
+	 * @param {Object} A 1st point of an edge.
+	 * @param {Object} B 2nd point of an edge.
+	 * @param {Number} lng
+	 * @param {Number} lat
+     * @return {boolean} true if (lng,lat) is west of the line segment connecting A and B
+	 */
+    west : function (A, B, lng, lat) {
+        if (A.lat <= B.lat) {
+            if (lat <= A.lat || lat > B.lat ||
+                lng >= A.lng && lng >= B.lng) {
+                return false;
+            } else if (lng < A.lng && lng < B.lng) {
+                return true;
+            } else {
+                return (lat - A.lat) / (lng - A.lng) > (B.lat - A.lat) / (B.lng - A.lng);
+            }
+        } else {
+            return this.west(B, A, lng, lat);
+        }
+    }
+};
+
+/**
  * Get visible portals withing given bounds.
  *
- * @param {L.LatLngBounds} bounds
+ * @param {L.LatLngBounds} bounds Rectangular bounds.
+ * @param {Array} polygonPoints Array of LatLng points creating a polygon.
  * @returns {Array} Array of guids for portals that are within bounds.
  */
-window.plugin.magnusBuilder.getPortalsInBounds = function(bounds) {
+window.plugin.magnusBuilder.getPortalsInBounds = function(bounds, polygonPoints) {
 	var visiblePortals = [];
 	$.each(window.portals, function(guid,portal) {
 		var ll = portal.getLatLng();
+		var isInside = false;
 		if (bounds.contains(ll)) {
+			if (!polygonPoints) {
+				isInside = true;
+			} else if (rayCastingUtils.contains(polygonPoints, ll)) {
+				isInside = true;
+			}
+		}
+		if (isInside) {
 			visiblePortals.push(guid);
 		}
 	});
@@ -397,7 +460,10 @@ window.plugin.magnusBuilder.getSelectedPortals = function() {
 
 	// find and set state for portals in polygons
 	for (var i = 0; i < polygons.length; i++) {
-		var selectedPortals = window.plugin.magnusBuilder.getPortalsInBounds(polygons[i].getBounds());
+		var selectedPortals = window.plugin.magnusBuilder.getPortalsInBounds(
+			polygons[i].getBounds(),
+			polygons[i].getLatLngs()
+		);
 		for (var j = 0; j < selectedPortals.length; j++) {
 			selection.portals.push(selectedPortals[j]);
 		}
