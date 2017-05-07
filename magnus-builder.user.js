@@ -113,7 +113,7 @@ window.plugin.magnusBuilder.onPortalDetailsUpdated = function() {
 };
 
 /**
- * Update checboxes
+ * Update checboxes.
  * @param {type} guid
  * @returns {undefined}
  */
@@ -139,23 +139,81 @@ window.plugin.magnusBuilder.updateCheckedAndHighlight = function(guid) {
 };
 
 /**
- * Gets state for the portal.
+ * State object for this plugin.
+ *
+ * Note. This just for documentation.
+ *
+ * @returns {PortalState}
+ */
+function PortalState() {
+	/**
+	 * True if all-captured was selected.
+	 *
+	 * Note! `all` MIGHT NOT be set if all resonators were selected manually.
+	 */
+	this.all = false;
+	/**
+	 * Indexes of captured portals.
+	 *
+	 * It's a state before `all` was set.
+	 */
+	this.indexes = [];
+}
+
+/**
+ * Fix in-proper values and/or add default values.
+ *
+ * @param {PortalState} portalState
+ * @returns {PortalState}
+ */
+function fixPortalState(portalState) {
+	if (typeof portalState.all !== 'boolean') {
+		portalState.all = false;
+	}
+	if (!Array.isArray(portalState.indexes)) {
+		portalState.indexes = [];
+	};
+	return portalState;
+}
+
+/**
+ * Gets or create (initialize) state for the portal.
  *
  * Note! This also sets the initial portal state.
  *
- * Note! `all` MIGHT NOT be set if all resonators were selected manually.
- *
  * @param {String} guid Portal GUID.
- * @returns {Object} State object.
+ * @returns {PortalState} State object.
  */
 window.plugin.magnusBuilder.getOrCreatePortalState = function(guid) {
 	var portalState = plugin.magnusBuilder.magnusBuilder[guid];
+	// create
 	if (!portalState) {
-		plugin.magnusBuilder.magnusBuilder[guid] = portalState = {
-			all: false,	// true if all-captured was selected
-			indexes: []	// indexes of captured portals (state before `all` was set)
-		};
+		plugin.magnusBuilder.magnusBuilder[guid] = portalState = {};
+		// add defaults
+		fixPortalState(portalState);
 	}
+	// fix in-proper values
+	else {
+		fixPortalState(portalState);
+	}
+	return portalState;
+};
+
+/**
+ * Gets state for the portal.
+ *
+ * Note! You MUST NOT assume that changes to returend object will reflect state changes.
+ * You SHOULD NOT change returned object.
+ *
+ * @param {String} guid Portal GUID.
+ * @returns {PortalState} State object.
+ */
+window.plugin.magnusBuilder.getPortalState = function(guid) {
+	var portalState = plugin.magnusBuilder.magnusBuilder[guid];
+	if (!portalState) {
+		portalState = {};
+	}
+	fixPortalState(portalState);
 	return portalState;
 };
 
