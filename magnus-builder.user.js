@@ -296,7 +296,7 @@ window.plugin.magnusBuilder.updateResonator = function(resonatorIndex, captured,
  * @param {Boolean} fullyCaptured Are all resonator captured.
  * @param {String} guid Portal GUID.
  */
-window.plugin.magnusBuilder.updateCaptured = function(fullyCaptured, guid) {
+window.plugin.magnusBuilder.updateCaptured = function(fullyCaptured, guid, delaySync) {
 	if(guid == undefined) guid = window.selectedPortal;
 
 	LOG('updateCaptured: ', fullyCaptured, guid);
@@ -319,8 +319,141 @@ window.plugin.magnusBuilder.updateCaptured = function(fullyCaptured, guid) {
 		return;
 	}
 
-	plugin.magnusBuilder.updateCheckedAndHighlight(guid);
-	plugin.magnusBuilder.sync(guid);
+	if (!delaySync) {
+		plugin.magnusBuilder.updateCheckedAndHighlight(guid);
+		plugin.magnusBuilder.sync(guid);
+	}
+};
+
+// <editor-fold desc="Selected portals tools" defaultstate="collapsed">
+/**
+ * Get visible portals withing given bounds.
+ *
+ * @param {L.LatLngBounds} bounds
+ * @returns {Array} Array of guids for portals that are within bounds.
+ */
+window.plugin.magnusBuilder.getPortalsInBounds = function(bounds) {
+	var visiblePortals = [];
+	$.each(window.portals, function(guid,portal) {
+		var ll = portal.getLatLng();
+		if (bounds.contains(ll)) {
+			visiblePortals.push(guid);
+		}
+	});
+	return visiblePortals;
+};
+
+/**
+ * Get polygons that are fully visible.
+ * 
+ * @returns {Array} Array of `L.Polygon`
+ */
+window.plugin.magnusBuilder.getVisiblePolygons = function() {
+	if (!window.plugin.drawTools) {
+		return [];
+	}
+
+	var visibleBounds = map.getBounds();
+
+	var polygons = [];
+	window.plugin.drawTools.drawnItems.eachLayer(function(layer) {
+		if (!(layer instanceof L.Polygon)) {
+			return;
+		}
+
+		if (visibleBounds.contains(layer.getBounds())) {
+			polygons.push(layer);
+		}
+	});
+
+	return polygons;
+};
+
+/**
+ * Get polygons that are in fully visible polygons.
+ *
+ * @returns {Array} Array of guids for portals that are within bounds.
+ */
+window.plugin.magnusBuilder.getSelectedPortals = function() {
+	var selection = {
+		polygons: [],
+		portals: []
+	}
+	if (!window.plugin.drawTools) {
+		return selection;
+	}
+
+	// find visible polygons
+	var polygons = window.plugin.magnusBuilder.getVisiblePolygons();
+	if (polygons.length === 0) {
+		return selection;
+	}
+	selection.polygons = polygons;
+
+	// find and set state for portals in polygons
+	for (var i = 0; i < polygons.length; i++) {
+		var selectedPortals = window.plugin.magnusBuilder.getPortalsInBounds(polygons[i].getBounds());
+		for (var j = 0; j < selectedPortals.length; j++) {
+			selection.portals.push(selectedPortals[j]);
+		}
+	}
+
+	return selection;
+};
+// </editor-fold>
+
+window.plugin.magnusBuilder.updateVisiblePortals = function(fullyCaptured) {
+	if (!window.plugin.drawTools) {
+		alert('Error: You must install draw tools before using this function.');
+		return;
+	}
+
+	// find portals in visible polygons
+	var selection = window.plugin.magnusBuilder.getSelectedPortals();
+
+	// empty selection info
+	if (selection.polygons.length === 0) {
+		alert('No polygons are visible in this view. \n\
+			Note that the polygon must be fully visible (all corners must be in view).');
+		return;
+	}
+	if (selection.portals.length === 0) {
+		alert('No portals are visible in the visible polygon(s).');
+		return;
+	}
+
+	// confirmation
+	if (selection.portals.length === 0) {
+		alert('Are you sure you want to change state for all selected portals ('+selection.portals.length+')?');
+		return;
+	}
+
+	// find and set state for portals in polygons
+	for (var i = 0; i < selection.portals.length; i++) {
+		var guid = selection.portals[i];
+		plugin.magnusBuilder.updateCaptured(fullyCaptured, guid);
+		//plugin.magnusBuilder.updateCaptured(fullyCaptured, guid, true);
+		//plugin.magnusBuilder.updateQueue[guid] = true;
+		//plugin.magnusBuilder.storeLocal('updateQueue');
+	}
+
+	/*
+	// a full update - update the selected portal sidebar
+	if (window.selectedPortal) {
+		plugin.magnusBuilder.updateCheckedAndHighlight(window.selectedPortal);
+	}
+	// and also update all highlights, if needed
+	if (window.plugin.magnusBuilder.isHighlightActive) {
+		resetHighlightedPortals();
+	}
+
+	// store changes
+	plugin.magnusBuilder.storeLocal('magnusBuilder');
+	plugin.magnusBuilder.syncQueue();
+
+	// notify about mass changes
+	window.runHooks('pluginmagnusBuilderRefreshAll');
+	*/
 };
 
 // <editor-fold desc="Storage/sync" defaultstate="collapsed">
