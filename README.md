@@ -2,25 +2,33 @@
 
 Track your progress in for Magnus builder/architect badge.
 
-This plugin allows manual entry of deployed, unique resonators.
-
-<del>It will also try to guess which resonators you have captured from portal details, but this will not catch every case</del>. Not working yet (cannot be sure when the resonators were deployed).
-
-Use the `magnusBuilder` highlighter to show your progress on the map.
-Use the `sync` plugin to share between multiple browsers or desktop/mobile.
-
-<img src="https://raw.githubusercontent.com/Eccenux/iitc-plugin-magnus-builder/master/screen.png" alt="Screen">
+This plugin allows manual entry of deployed, unique resonators. It also allows selecting whole areas.
 
 Installation
 ------------
 
 Assuming you already have IITC just [install the script](https://github.com/Eccenux/iitc-plugin-magnus-builder/raw/master/magnus-builder.user.js).
 
+You should also install this plugins:
+* [Sync](https://iitc.me/desktop/#plugin-sync) (Category: Misc) -- plugin used to share between multiple browsers or desktop/mobile.
+* [draw tools](https://iitc.me/desktop/#plugin-draw-tools) (Category: Layer) -- plugin used to select many portals.
+
+Those plugins can be found on [IITC website](https://iitc.me/). Or directly in your mobile application (in settings).
+
+Basic usage
+------------
+
+Just open portal details and select resonators.
+
+<img src="https://raw.githubusercontent.com/Eccenux/iitc-plugin-magnus-builder/master/screen.png" alt="Screen">
+
+Use the `Magnus Builder` highlighter to show your progress on the map. Highlighters can be selected on the right side of the map (in desktop version of IITC) or in the right drawer (in mobile app).
+
 Selecting many portals
 ------------------------
 
-You can use draw tools to select many portals and mark them as done quickly. This also works great if you have problems clicking on two portals that are close together.
+You can use draw tools to select many portals and quickly mark them as done. This also works great if you have problems clicking on two portals that are close together.
 
-Note! You need `DrawTools` plugin to use this feature.
+Note! You need `draw tools` plugin to use this feature.
 
 <img src="https://raw.githubusercontent.com/Eccenux/iitc-plugin-magnus-builder/master/screen-massOps.png" alt="Mass operations dialog">
