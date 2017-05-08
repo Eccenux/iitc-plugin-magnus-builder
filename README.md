@@ -4,6 +4,8 @@ Track your progress in for Magnus builder/architect badge.
 
 This plugin allows manual entry of deployed, unique resonators. It also allows selecting whole areas.
 
+See also: [my other IITC plugins](https://github.com/search?q=user%3AEccenux+iitc-plugin&type=Repositories).
+
 Installation
 ------------
 
