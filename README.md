@@ -15,7 +15,7 @@ You should also install this plugins:
 * [Sync](https://iitc.me/desktop/#plugin-sync) (Category: Misc) -- plugin used to share between multiple browsers or desktop/mobile.
 * [draw tools](https://iitc.me/desktop/#plugin-draw-tools) (Category: Layer) -- plugin used to select many portals.
 
-Those plugins can be found on [IITC website](https://iitc.me/). Or directly in your mobile application (in settings).
+Note! On your mobile device install default `Sync` plugin, **but** install [my mobile friendly draw tools](https://github.com/Eccenux/iitc-plugin-draw-tools-mobile/blob/master/README.md). Default draw tools don't really work on mobile (touch) devices.
 
 Basic usage
 ------------
