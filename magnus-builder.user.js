@@ -2,7 +2,7 @@
 // @id             iitc-plugin-magnus-builder@eccenux
 // @name           IITC plugin: Magnus builder tracker
 // @category       Misc
-// @version        0.1.0
+// @version        0.1.1
 // @namespace      https://github.com/jonatkins/ingress-intel-total-conversion
 // @description    Allow manual entry of deployed, unique resonators. Use the 'highlighter-magnusBuilder' plugin to show the magnusBuilder on the map, and 'sync' to share between multiple browsers or desktop/mobile. It will try and guess which portals you have captured from portal details, but this will not catch every case.
 // @include        https://*.ingress.com/intel*
@@ -737,6 +737,13 @@ window.plugin.magnusBuilder.setupContent = function() {
 		+'</p>'
 	;
 
+	// leaflet (sidebar buttons)
+	$('.leaflet-control-container .leaflet-top.leaflet-left').append(''
+		+'<div class="leaflet-control-magnus leaflet-bar leaflet-control">'
+		+'	<a class="leaflet-control-magnus-done" href="#" title="magnus done" onclick="plugin.magnusBuilder.updateVisiblePortals(true); return false">✅</a>'
+		+'	<a class="leaflet-control-magnus-undone" href="#" title="magnus undone" onclick="plugin.magnusBuilder.updateVisiblePortals(false); return false">❌</a>'
+		+'</div>'
+	);
 };
 
 var setup = function() {
